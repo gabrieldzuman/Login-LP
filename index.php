@@ -30,7 +30,7 @@
   <body class="text-center">
     
 <main class="form-signin">
-  <form>
+  <form action="index.php" method="post">
     <a href="./index.php" class="icon">
     <img src="./img/lp.png" width="75x" height="75px"><br><br></a>
     <h1 class="h3 mb-3 fw-normal">Faça seu Login</h1><br>
@@ -45,7 +45,7 @@
     <div class="checkbox mb-3">
       <label>
         <input type="checkbox" value="lembre-me"> Lembre-me</label>
-        <a href="#"> Esqueci a senha</a>
+        <a href="#" action="reset_password.php" method="post"> Esqueci a senha</a>
     </div>
     <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
     <p class="mt-5 mb-3 text-muted">&copy; LegatumProject - 2023</p>
