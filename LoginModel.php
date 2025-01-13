@@ -1,23 +1,36 @@
+<?php
+
 class LoginModel {
-    private $db; // Conexão com o banco de dados
+    private $db; 
 
     public function __construct($db) {
         $this->db = $db;
     }
 
+    /**
+     * Verifica as credenciais do usuário.
+     * 
+     * @param string $email O e-mail do usuário.
+     * @param string $password A senha do usuário.
+     * @return bool Retorna true se as credenciais forem válidas, false caso contrário.
+     * @throws Exception Caso ocorra algum erro de banco de dados.
+     */
     public function checkCredentials($email, $password) {
-        $query = "SELECT * FROM users WHERE email = :email";
-        $stmt = $this->db->prepare($query);
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
+        try {
+            $query = "SELECT * FROM users WHERE email = :email LIMIT 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+            $stmt->execute();
 
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Verifica se o usuário foi encontrado e se a senha está correta
-        if ($user && password_verify($password, $user['password'])) {
-            return true; // Credenciais válidas
+            if ($user && password_verify($password, $user['password'])) {
+                return true; 
+            }
+        } catch (PDOException $e) {
+            throw new Exception('Erro ao verificar credenciais: ' . $e->getMessage());
         }
 
-        return false; // Credenciais inválidas
+        return false; 
     }
 }
