@@ -1,4 +1,3 @@
-<?php
 <!doctype html>
 <html lang="pt-br">
   <head>
@@ -7,7 +6,7 @@
     <meta name="author" content="Gabriel Dzuman">
     <title>LegatumProject - Login</title>
 
-<link href="./dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
       .bd-placeholder-img {
@@ -28,29 +27,34 @@
     <link href="style.css" rel="stylesheet">
   </head>
   <body class="text-center">
-    
-<main class="form-signin">
-  <form action="index.php" method="post">
-    <a href="./index.php" class="icon">
-    <img src="./img/lp.png" width="75x" height="75px"><br><br></a>
-    <h1 class="h3 mb-3 fw-normal">Faça seu Login</h1><br>
-    <div class="form-floating">
-      <input type="email" class="form-control" id="floatingInput" placeholder="nome@exemplo.com">
-      <label for="floatingInput">E-mail</label>
-    </div>
-    <div class="form-floating">
-      <input type="password" class="form-control" id="floatingPassword" placeholder="sua senha aqui">
-      <label for="floatingPassword">Senha</label>
-    </div>
-    <div class="checkbox mb-3">
-      <label>
-        <input type="checkbox" value="lembre-me"> Lembre-me</label>
-        <a href="#" action="reset_password.php" method="post"> Esqueci a senha</a>
-    </div>
-    <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
-    <p class="mt-5 mb-3 text-muted">&copy; LegatumProject - 2023</p>
-    
-  </form>
-</main> 
+    <main class="form-signin">
+      <form action="login_handler.php" method="post"> 
+        <a href="./index.php" class="icon">
+          <img src="./img/lp.png" width="75" height="75" alt="LegatumProject Logo"><br><br>
+        </a>
+        <h1 class="h3 mb-3 fw-normal">Faça seu Login</h1><br>
+
+        <div class="form-floating">
+          <input type="email" name="email" class="form-control" id="floatingInput" placeholder="nome@exemplo.com" required>
+          <label for="floatingInput">E-mail</label>
+        </div>
+
+        <div class="form-floating">
+          <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="sua senha aqui" required>
+          <label for="floatingPassword">Senha</label>
+        </div>
+
+        <div class="checkbox mb-3">
+          <label>
+            <input type="checkbox" name="remember" value="lembre-me"> Lembre-me
+          </label>
+          <a href="reset_password.php" class="ms-2">Esqueci a senha</a> 
+        </div>
+
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
+        
+        <p class="mt-5 mb-3 text-muted">&copy; LegatumProject - 2025</p>
+      </form>
+    </main>
   </body>
 </html>
