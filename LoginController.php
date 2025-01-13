@@ -1,29 +1,44 @@
+<?php
+
 require 'LoginModel.php';
 
 class LoginController {
-    public function index() {
+    public function index($error = '') {
         include 'index.php';
     }
 
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = $_POST['email'];
-            $password = $_POST['password'];
+            $email = trim($_POST['email']);
+            $password = trim($_POST['password']);
+
+            if (empty($email) || empty($password)) {
+                return $this->index('Por favor, preencha todos os campos.');
+            }
 
             $model = new LoginModel();
-            if ($model->checkCredentials($email, $password)) {
-                header('Location: welcome.php');
-            } else {
-                include 'index.php';
+
+            try {
+                if ($model->checkCredentials($email, $password)) {
+                    header('Location: welcome.php');
+                    exit; 
+                } else {
+                    return $this->index('E-mail ou senha incorretos.');
+                }
+            } catch (Exception $e) {
+                return $this->index('Ocorreu um erro interno. Tente novamente mais tarde.');
             }
         }
+        
+        $this->index();
     }
 }
 
 $controller = new LoginController();
 
-if (isset($_POST['email']) && isset($_POST['password'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller->login();
 } else {
     $controller->index();
 }
+?>
