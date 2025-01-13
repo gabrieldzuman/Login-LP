@@ -1,79 +1,112 @@
+<?php
+
 require 'PasswordResetModel.php';
 
 class PasswordResetController {
+    /**
+     * Trata a solicitação de redefinição de senha.
+     */
     public function requestReset() {
-    if (isset($_POST['email'])) {
-        $email = $_POST['email'];
+        if (!empty($_POST['email'])) {
+            $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
 
-        // Verifica se o email existe no banco de dados
-        $model = new PasswordResetModel();
-        $user = $model->getUserByEmail($email);
+            $model = new PasswordResetModel();
+            $user = $model->getUserByEmail($email);
 
-        if ($user) {
-            // Gera um token único
-            $token = bin2hex(random_bytes(32));
+            if ($user) {
+                $token = bin2hex(random_bytes(32));
+                $model->insertToken($email, $token);
 
-            // Insire o token no banco de dados
-            $model->insertToken($email, $token);
+                $resetLink = 'http://seusite.com/reset_password.php?email=' . urlencode($email) . '&token=' . urlencode($token);
 
-            // Envia um email com o link de redefinição de senha
-            $resetLink = 'http://seusite.com/reset_password.php?email=' . $email . '&token=' . $token;
-            // Envia o link de redefinição de senha por email
-            // Você pode usar uma biblioteca de envio de email, como PHPMailer, para fazer isso
+                $this->sendResetEmail($email, $resetLink);
+            } else {
+                $this->displayError('O e-mail fornecido não foi encontrado.');
+            }
         } else {
-            // O email não foi encontrado no banco de dados, talvez você queira exibir uma mensagem de erro
+            $this->displayError('Por favor, forneça um e-mail válido.');
         }
     }
-}
 
-
+    /**
+     * Valida o token de redefinição de senha.
+     */
     public function validateToken($email, $token) {
-    if ($email && $token) {
-        // Verifica se o token é válido no banco de dados
-        $model = new PasswordResetModel();
-        $tokenData = $model->validateToken($email, $token);
+        if ($email && $token) {
+            $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+            $token = filter_var($token, FILTER_SANITIZE_STRING);
 
-        if ($tokenData) {
-            // Se o token é válido, mostre a página de redefinição de senha
-            include 'reset_password.php';
+            $model = new PasswordResetModel();
+            $tokenData = $model->validateToken($email, $token);
+
+            if ($tokenData) {
+                include 'reset_password.php'; 
+            } else {
+                $this->displayError('Token inválido ou expirado.');
+            }
         } else {
-            // Se o token não é válido, exiba uma mensagem de erro
+            $this->displayError('Parâmetros de e-mail ou token ausentes.');
         }
-    } else {
-        // Se os parâmetros de email e token não foram fornecidos, redirecione para a página de solicitação de redefinição de senha
     }
-}
 
-
+    /**
+     * Redefine a senha do usuário.
+     */
     public function resetPassword() {
-    if (isset($_POST['email']) && isset($_POST['token']) && isset($_POST['password'])) {
-        $email = $_POST['email'];
-        $token = $_POST['token'];
-        $password = $_POST['password'];
+        if (!empty($_POST['email']) && !empty($_POST['token']) && !empty($_POST['password'])) {
+            $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+            $token = filter_var($_POST['token'], FILTER_SANITIZE_STRING);
+            $password = $_POST['password']; 
 
-        // Verifica se o token é válido no banco de dados
-        $model = new PasswordResetModel();
-        $tokenData = $model->validateToken($email, $token);
+            $model = new PasswordResetModel();
+            $tokenData = $model->validateToken($email, $token);
 
-        if ($tokenData) {
-            // Se o token é válido, redefina a senha
-            $model->resetPassword($email, $password);
-            // Redirecione o usuário para a página de login ou outra página apropriada
-            header('Location: login.php');
+            if ($tokenData) {
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                $model->resetPassword($email, $hashedPassword);
+
+                header('Location: login.php');
+                exit;
+            } else {
+                $this->displayError('Token inválido ou expirado.');
+            }
         } else {
-            // Se o token não é válido, exiba uma mensagem de erro
+            $this->displayError('Todos os campos são obrigatórios.');
         }
     }
-}
 
+    /**
+     * Exibe mensagens de erro de maneira segura.
+     */
+    private function displayError($message) {
+        echo '<p style="color: red;">' . htmlspecialchars($message) . '</p>';
+    }
+
+    /**
+     * Envia o email de redefinição de senha.
+     */
+    private function sendResetEmail($email, $resetLink) {
+        $subject = 'Redefinição de Senha';
+        $message = "Olá,\n\nClique no link abaixo para redefinir sua senha:\n\n$resetLink\n\nSe você não solicitou essa alteração, ignore este e-mail.";
+        $headers = "From: no-reply@seusite.com";
+
+        if (!mail($email, $subject, $message, $headers)) {
+            $this->displayError('Erro ao enviar o e-mail. Por favor, tente novamente mais tarde.');
+        }
+    }
 }
 
 $controller = new PasswordResetController();
 
-if (isset($_POST['email'])) {
-    $controller->requestReset();
-} elseif (isset($_POST['token']) && isset($_POST['password'])) {
-    $controller->resetPassword();
-} else {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['email']) && !isset($_POST['token'])) {
+        $controller->requestReset();
+    } elseif (isset($_POST['token']) && isset($_POST['password'])) {
+        $controller->resetPassword();
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['email'], $_GET['token'])) {
     $controller->validateToken($_GET['email'], $_GET['token']);
+} else {
+    header('Location: request_reset.php');
+    exit;
 }
