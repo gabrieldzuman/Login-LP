@@ -20,7 +20,7 @@ class PasswordResetModel {
      * @throws Exception Se ocorrer um erro ao gerar o token ou ao executar a query.
      */
     public function requestReset($email) {
-        $token = bin2hex(random_bytes(32)); // Gera um token seguro
+        $token = bin2hex(random_bytes(32)); 
         $query = "
             INSERT INTO password_resets (email, token, created_at)
             VALUES (:email, :token, NOW())
